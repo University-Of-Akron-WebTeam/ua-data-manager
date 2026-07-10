@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UA Data Manager Demo</title>
+    <style>
+      .ua-datamanager-main {
+         width: 100%;
+         margin: 32px auto;
+       }
+
+       h1 {
+         margin: 0 0 18px;
+         font-size: 2rem;
+       }
+
+       .ua-data-manager {
+         display: grid;
+         gap: 16px;
+       }
+       .ua-result-count {
+         font-weight: 700;
+         }
+
+       .ua-filters {
+         display: flex;
+         gap: 12px;
+         flex-wrap: wrap;
+       }
+
+       .ua-filter {
+         display: grid;
+         gap: 6px;
+         font-size: 0.9rem;
+         font-weight: 700;
+       }
+
+       .ua-filter input,
+       .ua-filter select {
+         height: 35px;
+         border: 1px solid #b8c2cc;
+         border-radius: 6px;
+         padding: 0 10px;
+         font: inherit;
+         background: #fff;
+       }
+     @media (max-width: 768px) {
+       .ua-filters {
+         display:block;
+         background-color:#dbe8f0;
+         padding: 10px;
+       }
+       .ua-checkbox-option input[type="checkbox"]{
+             width: unset;
+       }
+      .ua-filter input,
+       .ua-filter select {
+         width: 320px;
+         margin-bottom: 10px;
+       }
+       .ua-filters fieldset{
+         width: 320px;
+       }
+
+     }
+       .ua-grid {
+         width: 100%;
+         border-collapse: collapse;
+         border: 1px solid #d8dde5;
+         background: #fff;
+       }
+
+       .ua-grid th,
+       .ua-grid td {
+         padding: 12px 14px;
+         border-bottom: 1px solid #e5e9ee;
+         text-align: left;
+       }
+
+       .ua-grid th {
+         position: sticky;
+         top: 0;
+         z-index: 1;
+         background: #edf1f5;
+         font-size: 0.82rem;
+         text-transform: uppercase;
+       }
+       .ua-sort-button {
+         display: inline-flex;
+         align-items: center;
+         gap: 6px;
+         border: 0;
+         min-height: 0;
+         padding: 0;
+         background: transparent;
+         color: inherit;
+         font: inherit;
+         font-weight: 700;
+         text-transform: inherit;
+         cursor: pointer;
+       }
+
+       .ua-sort-button:hover,
+       .ua-sort-button:focus {
+         text-decoration: underline;
+       }
+
+       .ua-sort-icon {
+         font-size: 0.75rem;
+         line-height: 1;
+       }
+ /*++++++++MODAL+++++++++++*/
+       .ua-grid tr[data-ua-row] {
+         cursor: pointer;
+       }
+
+       .ua-grid tr[data-ua-row]:hover {
+         background: #dbe8f0;
+       }
+
+       .ua-grid-modal-backdrop {
+         cursor: pointer;
+       }
+
+       .ua-grid-modal {
+         position: fixed;
+         inset: 0;
+         z-index: 1055;
+         overflow-x: hidden;
+         overflow-y: auto;
+       }
+
+       .ua-grid-modal-backdrop {
+         position: fixed;
+         inset: 0;
+         z-index: 1050;
+         background: rgba(0, 0, 0, 0.5);
+       }
+
+       .ua-grid-details {
+         display: grid;
+         grid-template-columns: max-content 1fr;
+         gap: 8px 16px;
+       }
+
+       .ua-grid-details dt {
+         font-weight: 700;
+         font-family: 'open-sans';
+       }
+
+       .ua-grid-details dd {
+         margin: 0;
+         font-family: 'open-sans';
+       }
+ /*++++++++MODAL+++++++++++*/
+       .ua-paging,
+       .pagination {
+         display: flex;
+         justify-content: flex-start;
+         align-items: center;
+         gap: 8px;
+         flex-wrap: wrap;
+       }
+      .ua-grid-scroll {
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+      .ua-infinite-scroll-marker {
+        height: 1px;
+      }
+       .pagination {
+         list-style: none;
+         margin: 0;
+         padding: 0;
+       }
+
+       button {
+         min-height: 36px;
+         border: 1px solid #9facba;
+         border-radius: 6px;
+         padding: 0 12px;
+         font: inherit;
+         background: #fff;
+         cursor: pointer;
+       }
+
+       button:disabled {
+         opacity: 0.5;
+         cursor: not-allowed;
+       }
+
+       .page-item.active .page-link {
+         background: #1d547d;
+         border-color: #1d547d;
+         color: #fff;
+       }
+
+       /*+++++++FORMS+++++++++*/
+       .ua-checkbox-option input[type="checkbox"]{
+         height: 15px;
+         margin: 5px 5px 5px 5px;
+       }
+       .ua-filters legend{
+         float: none;
+         width: unset;
+         padding: 3px;
+         font-size: inherit;
+         line-height: inherit;
+       }
+       .ua-filters fieldset{
+           min-width: 50px;
+         padding: 5px;
+         margin: 5px;
+         border: #666 solid 1px;
+         }
+       /*+++++++FORMS+++++++++*/
+
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>UA Data Manager</h1>
+      <div id="ua-data-stage"></div>
+    </main>
+
+    <script src="ua-data-manager.js"></script>
+    <script src="plugins/grid.js"></script>
+    <script>
+      UADataManager.init({
+        dataurl: "https://dev.uakron.edu/academics_majors/class-search/data/courseswd.json",
+        plugins: {
+          grid: {
+            pluginurl: "plugins/grid.js",
+            stage: "#ua-data-stage",
+            templateurl: "templates/grid.html",
+            filters: {
+              keyword: {
+                name: "keyword",
+                label: "Search Courses",
+                target: ["Course", "Title", "Description", "Instructor"]
+              },
+              department: {
+                type: "select",
+                name: "department",
+                label: "Department",
+                target: "Department"
+              },
+              career: {
+                type: "checkbox-group",
+                name: "career",
+                label: "Career",
+                target: "Career"
+              },
+              campus: {
+                type: "select",
+                name: "campus",
+                label: "Campus",
+                target: "Campus"
+              },
+              mode: {
+                type: "select",
+                name: "mode",
+                label: "Instruction Mode",
+                target: "Instruction_Mode"
+              }
+            },
+            initialFilters: {},
+            headers: {
+              course: { label: "Course", target: "Course" },
+              title: { label: "Title", target: "Title" },
+              department: { label: "Department", target: "Department" },
+              career: { label: "Career", target: "Career" },
+              campus: { label: "Campus", target: "Campus" },
+              mode: { label: "Mode", target: "Instruction_Mode" },
+              days: { label: "Days", target: "Days" },
+              time: { label: "Start", target: "Start_Time" },
+              instructor: { label: "Instructor", target: "Instructor" }
+            },
+            details: {
+              course: { label: "Course", target: "Course" },
+              title: { label: "Title", target: "Title" },
+              description: { label: "Description", target: "Description" },
+              department: { label: "Department", target: "Department" },
+              term: { label: "Term", target: "Term" },
+              career: { label: "Career", target: "Career" },
+              campus: { label: "Campus", target: "Campus" },
+              mode: { label: "Instruction Mode", target: "Instruction_Mode" },
+              days: { label: "Days", target: "Days" },
+              startTime: { label: "Start Time", target: "Start_Time" },
+              endTime: { label: "End Time", target: "End_Time" },
+              location: { label: "Location", target: "Location" },
+              instructor: { label: "Instructor", target: "Instructor" },
+              credit: { label: "Credit", target: "Credit" }
+            },
+            paging: {
+              type: "infinite",
+              page: 1,
+              pageSize: 25
+            }
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
