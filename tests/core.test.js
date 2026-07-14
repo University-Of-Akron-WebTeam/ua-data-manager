@@ -3,6 +3,7 @@
 var assert = require("assert");
 var path = require("path");
 var capturedRecords;
+var csvManager;
 
 global.window = {
   setTimeout: setTimeout,
@@ -53,6 +54,7 @@ function waitForRender(attempts) {
       { full: "/three.jpg" }
     ]);
     process.stdout.write("core dataPath tests passed\n");
+    runCsvTest();
     return;
   }
 
@@ -66,3 +68,49 @@ function waitForRender(attempts) {
 }
 
 waitForRender(10);
+
+function runCsvTest() {
+  capturedRecords = null;
+  csvManager = window.UADataManager.init({
+    data: "PRES,Bretz,Paul,,College of Engineering and Polymer Science\nDEAN,Fisher,Alli,,College of Health and Human Sciences",
+    parseCSV: true,
+    csvHeaders: ["recognition", "lastName", "firstName", "middleName", "college"],
+    plugins: {
+      capture: {}
+    }
+  });
+
+  void csvManager;
+  waitForCsvRender(10);
+}
+
+function waitForCsvRender(attempts) {
+  if (capturedRecords) {
+    assert.deepStrictEqual(capturedRecords, [
+      {
+        recognition: "PRES",
+        lastName: "Bretz",
+        firstName: "Paul",
+        middleName: "",
+        college: "College of Engineering and Polymer Science"
+      },
+      {
+        recognition: "DEAN",
+        lastName: "Fisher",
+        firstName: "Alli",
+        middleName: "",
+        college: "College of Health and Human Sciences"
+      }
+    ]);
+    process.stdout.write("core csvHeaders tests passed\n");
+    return;
+  }
+
+  if (!attempts) {
+    throw new Error("Core did not render the headerless CSV records.");
+  }
+
+  setTimeout(function() {
+    waitForCsvRender(attempts - 1);
+  }, 0);
+}

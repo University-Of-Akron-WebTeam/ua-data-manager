@@ -17,6 +17,8 @@
     dataPath: "",
     parseCSV: false,
     parseTSV: false,
+    csvHeaders: null,
+    tsvHeaders: null,
     plugins: {}
   };
 
@@ -486,11 +488,11 @@
     }
 
     if (options.parseCSV) {
-      return parseDelimited(input, ",");
+      return parseDelimited(input, ",", options.csvHeaders);
     }
 
     if (options.parseTSV) {
-      return parseDelimited(input, "\t");
+      return parseDelimited(input, "\t", options.tsvHeaders);
     }
 
     if (typeof input === "string" && input.trim()) {
@@ -527,9 +529,11 @@
     return records.slice();
   }
 
-  function parseDelimited(text, delimiter) {
+  function parseDelimited(text, delimiter, providedHeaders) {
     var rows = String(text || "").trim().split(/\r?\n/);
-    var headers = parseDelimitedRow(rows.shift() || "", delimiter);
+    var headers = Array.isArray(providedHeaders) && providedHeaders.length
+      ? providedHeaders
+      : parseDelimitedRow(rows.shift() || "", delimiter);
 
     return rows.filter(Boolean).map(function(row) {
       var values = parseDelimitedRow(row, delimiter);

@@ -10,14 +10,18 @@ The core file loads data and gives shared utilities to plugins. Plugins own the 
 ua-data-manager/
   index.html
   gallery-demo.html
+  student-recognition-demo.html
   ua-data-manager.js
   plugins/
     grid.js
+    grid-starter.js
     gallery.js
     starter.js
+    student-recognition.js
   templates/
     grid.html
     gallery.html
+    student-recognition.html
   tests/
     core.test.js
     gallery.test.js
@@ -93,6 +97,8 @@ UADataManager.init({
   dataPath: "",
   parseCSV: false,
   parseTSV: false,
+  csvHeaders: null,
+  tsvHeaders: null,
   plugins: {}
 });
 ```
@@ -100,6 +106,8 @@ UADataManager.init({
 `data` can be an array of records.
 
 `dataurl` can point to a JSON, CSV, or TSV file. JSON is the default. Use `parseCSV: true` or `parseTSV: true` for delimited files.
+
+Use `csvHeaders` or `tsvHeaders` when a delimited file does not include a header row. The first data row will be kept instead of treated as headers.
 
 `dataPath` selects an array inside a wrapped JSON response. For example, use `dataPath: "images"` for `{ "images": [...] }`. Dot paths such as `payload.images` are supported.
 
@@ -402,7 +410,7 @@ The core owns reusable pieces:
 
 This lets the gallery and future plugins reuse the core without inheriting grid-specific markup.
 
-See `DEVELOPER_NOTES.md` for the plugin lifecycle and copy `plugins/starter.js` when creating a new plugin.
+See `DEVELOPER_NOTES.md` for the plugin lifecycle and copy `plugins/starter.js` when creating a new plugin. For table-like plugins with filters and sorting, see `GRID_DEVELOPER_NOTES.md` and copy `plugins/grid-starter.js`.
 
 ## Gallery Plugin
 
@@ -475,3 +483,59 @@ fancybox: {
 If Fancybox is unavailable, the image anchors retain their normal link behavior. Adjust `paging.pageSize` to control how many thumbnails appear in each masonry page.
 
 The gallery emits `ua-gallery:rendered` after each render. Its event detail contains the current paging view and gallery plugin instance.
+
+## Student Recognition Plugin
+
+The student-recognition plugin is a small example of turning `plugins/starter.js` into a real feature plugin. It mounts `templates/student-recognition.html`, renders a two-column grid, and adds filtering and sorting while keeping display markup in the HTML template.
+
+```html
+<div id="student-recognition-stage"></div>
+<script src="ua-data-manager.js"></script>
+<script src="plugins/student-recognition.js"></script>
+```
+
+```js
+UADataManager.init({
+  dataurl: location.hostname === "dev.uakron.edu"
+    ? "/audiences/current_students/recognition/includes/data/awards-list-spring-2025.csv"
+    : "https://dev.uakron.edu/audiences/current_students/recognition/includes/data/awards-list-spring-2025.csv",
+  parseCSV: true,
+  csvHeaders: ["recognition", "lastName", "firstName", "middleName", "college"],
+  plugins: {
+    "student-recognition": {
+      stage: "#student-recognition-stage",
+      templateurl: "templates/student-recognition.html",
+      columns: [
+        { key: "student", label: "Student", target: "name" },
+        { key: "department", label: "Department", target: "department" },
+        { key: "recognition", label: "Recognition", target: "recognition" }
+      ],
+      paging: {
+        type: "infinite",
+        page: 1,
+        pageSize: 50
+      },
+      filters: {
+        keyword: {
+          type: "text",
+          label: "Search",
+          target: ["name", "recognition", "department", "program", "firstName", "lastName", "middleName", "college"]
+        },
+        recognition: {
+          type: "select",
+          label: "Recognition",
+          target: "recognition",
+          allLabel: "All Recognition"
+        },
+        department: {
+          type: "checkbox-group",
+          label: "Department",
+          target: "department"
+        }
+      }
+    }
+  }
+});
+```
+
+The Spring 2025 awards CSV does not include a header row, so the demo provides `csvHeaders`. The plugin normalizes the `PRES` and `DEAN` codes into friendly recognition labels and displays the student name, college, and award. Edit the row template placeholders or column/filter targets when the source data uses different field names.

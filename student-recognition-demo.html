@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UA Data Manager Student Recognition Demo</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f4f7fa;
+      color: #1b1f24;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .demo-page {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-page">
+    <div id="student-recognition-stage"></div>
+  </div>
+
+  <script src="ua-data-manager.js?v=20260714-4"></script>
+  <script src="plugins/student-recognition.js?v=20260714-4"></script>
+  <script>
+    UADataManager.init({
+      dataurl: location.hostname === "dev.uakron.edu"
+        ? "/audiences/current_students/recognition/includes/data/awards-list-spring-2025.csv"
+        : "https://dev.uakron.edu/audiences/current_students/recognition/includes/data/awards-list-spring-2025.csv",
+      parseCSV: true,
+      csvHeaders: ["recognition", "lastName", "firstName", "middleName", "college"],
+      plugins: {
+        "student-recognition": {
+          stage: "#student-recognition-stage",
+          templateurl: "templates/student-recognition.html?v=20260714-4",
+          columns: [
+            { key: "student", label: "Student", target: "name" },
+            { key: "department", label: "Department", target: "department" },
+            { key: "recognition", label: "Recognition", target: "recognition" }
+          ],
+          paging: {
+            type: "infinite",
+            page: 1,
+            pageSize: 50
+          },
+          filters: {
+            keyword: {
+              type: "text",
+              label: "Search",
+              target: ["name", "recognition", "department", "program", "firstName", "lastName", "middleName", "college"]
+            },
+            recognition: {
+              type: "select",
+              label: "Recognition",
+              target: "recognition",
+              allLabel: "All Recognition"
+            },
+            department: {
+              type: "checkbox-group",
+              label: "Department",
+              target: "department"
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

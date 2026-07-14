@@ -1,0 +1,320 @@
+<style>
+  .ua-student-recognition {
+    clear: both;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    color: #1b1f24;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .ua-student-recognition-header {
+    float: none;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 24px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #1d547d;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ua-student-recognition-title {
+    margin: 0;
+    color: #102f4c;
+    font-size: 1.65rem;
+    line-height: 1.15;
+  }
+
+  .ua-student-recognition-summary {
+    margin: 0;
+    color: #54606c;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+
+  .ua-student-recognition-filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(180px, 260px);
+    gap: 12px;
+    margin: 0 0 14px;
+  }
+
+  .ua-student-recognition-layout {
+    clear: both;
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+    margin-top: 4px;
+    width: 100%;
+    position: relative;
+    z-index: 0;
+  }
+
+  .ua-student-recognition-sidebar {
+    float: none;
+    width: auto;
+    max-width: none;
+    border: 1px solid #d7dee6;
+    background: #fff;
+  }
+
+  .ua-student-recognition-sidebar [data-ua-student-recognition-filter-target] {
+    padding: 14px;
+  }
+
+  .ua-student-recognition-filters .ua-filter {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+    color: #344250;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  .ua-student-recognition-sidebar fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .ua-student-recognition-sidebar legend {
+    margin: 0 0 10px;
+    color: #102f4c;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .ua-student-recognition-sidebar .ua-checkbox-group {
+    display: grid;
+    gap: 8px;
+    max-height: 62vh;
+    overflow: auto;
+  }
+
+  .ua-student-recognition-sidebar .ua-checkbox-option {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    align-items: start;
+    margin: 0;
+    color: #344250;
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+
+  .ua-student-recognition-sidebar .ua-checkbox-option input {
+    margin-top: 2px;
+  }
+
+  .ua-student-recognition-filters input,
+  .ua-student-recognition-filters select {
+    width: 100%;
+    min-height: 38px;
+    padding: 7px 10px;
+    border: 1px solid #c7d1dc;
+    border-radius: 5px;
+    background: #fff;
+    color: #1b1f24;
+    font: inherit;
+    font-weight: 400;
+  }
+
+  .ua-student-recognition-table-wrap {
+    max-height: 68vh;
+    overflow: auto;
+    border: 1px solid #d7dee6;
+    background: #fff;
+  }
+
+  .ua-student-recognition-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+  }
+
+  .ua-student-recognition-table th,
+  .ua-student-recognition-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e3e8ee;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .ua-student-recognition-table th {
+    background: #f0f4f7;
+  }
+
+  .ua-student-recognition-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .ua-student-recognition-sort-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #102f4c;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .ua-student-recognition-sort-icon {
+    color: #1d547d;
+    font-size: 0.88rem;
+  }
+
+  .ua-student-recognition-student-name {
+    display: block;
+    color: #102f4c;
+    font-weight: 700;
+  }
+
+  .ua-student-recognition-student-meta,
+  .ua-student-recognition-detail {
+    display: block;
+    margin-top: 3px;
+    color: #566371;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .ua-student-recognition-student-meta:empty,
+  .ua-student-recognition-detail:empty {
+    display: none;
+  }
+
+  .ua-student-recognition-honor {
+    display: block;
+    color: #1d547d;
+    font-weight: 700;
+  }
+
+  .ua-student-recognition-infinite-marker {
+    height: 1px;
+  }
+
+  @media (max-width: 680px) {
+    .ua-student-recognition {
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+    }
+
+    .ua-student-recognition-header,
+    .ua-student-recognition-layout,
+    .ua-student-recognition-filters {
+      display: block;
+    }
+
+    .ua-student-recognition-header {
+      float: none;
+      width: 100%;
+      order: 1;
+      margin-bottom: 18px;
+    }
+
+    .ua-student-recognition-layout {
+      clear: both;
+      float: none;
+      width: 100%;
+      order: 2;
+      margin-top: 116px;
+    }
+
+    .ua-student-recognition-summary,
+    .ua-student-recognition-filters [data-ua-student-recognition-filter-target] + [data-ua-student-recognition-filter-target] {
+      margin-top: 10px;
+      white-space: normal;
+    }
+
+    .ua-student-recognition-sidebar {
+      float: none;
+      width: 100%;
+      max-width: none;
+      margin: 0 0 14px;
+    }
+
+    .ua-student-recognition-sidebar .ua-checkbox-group {
+      max-height: 260px;
+    }
+
+    .ua-student-recognition-table-wrap {
+      max-height: 64vh;
+    }
+  }
+</style>
+
+<section class="ua-student-recognition" data-ua-student-recognition>
+  <header class="ua-student-recognition-header">
+    <h2 class="ua-student-recognition-title">Student Recognition</h2>
+    <p class="ua-student-recognition-summary">
+      Showing <span data-ua-student-recognition-value="shown"></span> of <span data-ua-student-recognition-value="count"></span>
+    </p>
+  </header>
+
+  <div class="ua-student-recognition-layout">
+    <aside class="ua-student-recognition-sidebar">
+      <div data-ua-student-recognition-filter-target="department"></div>
+    </aside>
+
+    <div class="ua-student-recognition-results">
+      <div class="ua-student-recognition-filters">
+        <div data-ua-student-recognition-filter-target="keyword"></div>
+        <div data-ua-student-recognition-filter-target="recognition"></div>
+      </div>
+
+      <div class="ua-student-recognition-table-wrap" data-ua-student-recognition-scroll>
+        <table class="ua-student-recognition-table">
+          <thead>
+            <tr>
+              <th scope="col" data-ua-student-recognition-column="1">
+                <button type="button" class="ua-student-recognition-sort-button" data-ua-student-recognition-sort="">
+                  <span data-ua-student-recognition-column-label></span>
+                  <span class="ua-student-recognition-sort-icon" data-ua-student-recognition-sort-icon aria-hidden="true">&#8597;</span>
+                </button>
+              </th>
+              <th scope="col" data-ua-student-recognition-column="2">
+                <button type="button" class="ua-student-recognition-sort-button" data-ua-student-recognition-sort="">
+                  <span data-ua-student-recognition-column-label></span>
+                  <span class="ua-student-recognition-sort-icon" data-ua-student-recognition-sort-icon aria-hidden="true">&#8597;</span>
+                </button>
+              </th>
+              <th scope="col" data-ua-student-recognition-column="3">
+                <button type="button" class="ua-student-recognition-sort-button" data-ua-student-recognition-sort="">
+                  <span data-ua-student-recognition-column-label></span>
+                  <span class="ua-student-recognition-sort-icon" data-ua-student-recognition-sort-icon aria-hidden="true">&#8597;</span>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody data-ua-student-recognition-rows>
+            <template data-ua-student-recognition-row-template>
+              <tr data-ua-student-recognition-row data-ua-student-recognition-index="{{_index}}">
+                <td>
+                  <span class="ua-student-recognition-student-name">{{name}}</span>
+                  <span class="ua-student-recognition-student-meta">{{meta}}</span>
+                </td>
+                <td>{{department}}</td>
+                <td>
+                  <span class="ua-student-recognition-honor">{{recognition}}</span>
+                  <span class="ua-student-recognition-detail">{{summary}}</span>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+        <div class="ua-student-recognition-infinite-marker" data-ua-student-recognition-infinite-marker aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</section>
