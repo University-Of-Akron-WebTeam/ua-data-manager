@@ -14,6 +14,7 @@ ua-data-manager/
   plugins/
     grid.js
     gallery.js
+    starter.js
   templates/
     grid.html
     gallery.html
@@ -21,6 +22,7 @@ ua-data-manager/
     core.test.js
     gallery.test.js
   requirements.md
+  DEVELOPER_NOTES.md
   README.md
 ```
 
@@ -399,6 +401,8 @@ The core owns reusable pieces:
 - shared paging calculations and control metadata
 
 This lets the gallery and future plugins reuse the core without inheriting grid-specific markup.
+
+See `DEVELOPER_NOTES.md` for the plugin lifecycle and copy `plugins/starter.js` when creating a new plugin.
 
 ## Gallery Plugin
 
