@@ -3,9 +3,12 @@
 
   // UA Data Manager gallery plugin.
   //
-  // The gallery is organized around small renderers instead of one long render
-  // flow. GalleryPlugin owns lifecycle and state, TemplateRenderer owns
-  // cloning/repeating/variable replacement, and PagingRenderer owns controls.
+  // This file is intentionally shaped as a template for future plugins:
+  // 1. load one HTML template,
+  // 2. clone it into the stage,
+  // 3. copy repeatable elements,
+  // 4. replace values in text and attributes,
+  // 5. bind behavior to stable template selectors.
 
   var defaults = {
     stage: "",
@@ -15,14 +18,18 @@
     baseurl: "",
     urlFields: ["thumbnail", "full", "image"],
     paging: {
+      enabled: true,
       type: "previous-next",
       page: 1,
-      pageSize: 12
+      pageSize: 24
     },
     fancybox: {
       enabled: true,
       selector: "[data-fancybox=\"ua-gallery\"]",
       options: {}
+    },
+    captions: {
+      enabled: true
     }
   };
 
@@ -30,23 +37,20 @@
     return new GalleryPlugin(context, normalizeOptions(options || {}));
   }
 
-  // Gallery lifecycle
+  // Plugin lifecycle
 
   function GalleryPlugin(context, settings) {
     this.context = context;
     this.settings = settings;
     this.stage = context.resolveElement(settings.stage);
     this.baseurl = settings.baseurl || getUrlOrigin(context.manager.options && context.manager.options.dataurl);
-    this.templates = {
-      shell: "",
-      item: ""
-    };
-    this.state = {
-      page: Number(settings.paging.page || 1)
-    };
+    this.templates = null;
     this.view = null;
     this.eventsBound = false;
     this.fancyboxBound = false;
+    this.state = {
+      page: Number(settings.paging.page || 1)
+    };
   }
 
   GalleryPlugin.prototype.init = function() {
@@ -61,6 +65,7 @@
         throw new Error("UA Data Manager gallery template needs a data-ua-gallery-item-template element or itemtemplate option.");
       }
 
+      this.mountTemplate();
       this.bindEvents();
       this.bindFancybox();
     }.bind(this));
@@ -68,36 +73,38 @@
 
   GalleryPlugin.prototype.render = function() {
     var records;
-    var values;
 
     if (!this.stage) {
       return this;
     }
 
+    this.mountTemplate();
+
     records = RecordMapper.prepare(this.context.records(), this.baseurl, this.settings.urlFields);
-    this.view = this.context.paging.apply(records, this.settings.paging, this.state);
+    this.view = this.settings.paging.enabled === false
+      ? createFullView(records)
+      : this.context.paging.apply(records, this.settings.paging, this.state);
     this.state.page = this.view.page;
 
-    values = {
-      items: this.repeat(this.templates.item, this.view.rows),
-      paging: PagingRenderer.render(this.view, this.context),
+    this.replaceValues({
       count: this.view.total,
       shown: this.view.shown,
       page: this.view.page,
-      pageCount: this.view.pageCount
-    };
-
-    // Item values are escaped by repeat(). The completed item and paging
-    // fragments are plugin-generated HTML, so the core shell renderer inserts
-    // them without escaping the markup itself.
-    replaceStageHtml(this.stage, this.context.renderTemplate(this.templates.shell, values));
+      pageCount: this.view.pageCount,
+      paging: ""
+    });
+    this.replaceList("[data-ua-gallery-items]", this.templates.item, this.view.rows);
+    this.updateCaptions();
+    this.updatePaging();
     this.bindFancybox();
     this.emitRendered();
     return this;
   };
 
-  // Public rendering methods. Keeping these on the plugin instance makes the
-  // repetition system reusable by future gallery layouts and integrations.
+  // Public template methods.
+  //
+  // These methods are deliberately generic so another plugin can copy this
+  // shape and replace gallery-specific selectors with its own template handles.
 
   GalleryPlugin.prototype.clone = function(template) {
     return TemplateRenderer.clone(template);
@@ -109,6 +116,76 @@
 
   GalleryPlugin.prototype.repeat = function(template, records) {
     return TemplateRenderer.repeat(template, records, this.context.escapeHtml);
+  };
+
+  GalleryPlugin.prototype.mountTemplate = function() {
+    if (!this.stage || !this.templates || this.stage.querySelector("[data-ua-gallery]")) {
+      return;
+    }
+
+    this.stage.replaceChildren(TemplateRenderer.clone(this.templates.shell.content));
+  };
+
+  GalleryPlugin.prototype.replaceValues = function(values) {
+    TemplateRenderer.replaceTextTargets(this.stage, values);
+    TemplateRenderer.replaceVariables(this.stage, values);
+  };
+
+  GalleryPlugin.prototype.replaceList = function(targetSelector, itemTemplate, records) {
+    var target = this.stage.querySelector(targetSelector);
+    var items = this.repeat(itemTemplate, records);
+
+    if (!target) {
+      return;
+    }
+
+    target.replaceChildren();
+    items.forEach(function(item) {
+      target.appendChild(item);
+    });
+  };
+
+  GalleryPlugin.prototype.updateCaptions = function() {
+    Array.prototype.forEach.call(this.stage.querySelectorAll("[data-ua-gallery-caption]"), function(element) {
+      element.hidden = this.settings.captions.enabled === false;
+    }.bind(this));
+  };
+
+  GalleryPlugin.prototype.updatePaging = function() {
+    var paging = this.stage.querySelector("[data-ua-gallery-paging]");
+    var controls;
+    var controlMap = {};
+
+    if (paging) {
+      paging.hidden = this.settings.paging.enabled === false;
+    }
+
+    if (this.settings.paging.enabled === false) {
+      return;
+    }
+
+    controls = this.context.paging.controls(this.view);
+
+    controls.forEach(function(control) {
+      controlMap[control.action] = control;
+    });
+
+    Array.prototype.forEach.call(this.stage.querySelectorAll("[data-ua-gallery-control]"), function(element) {
+      var control = controlMap[element.getAttribute("data-ua-gallery-control")];
+
+      if (!control) {
+        element.hidden = true;
+        return;
+      }
+
+      element.hidden = false;
+      element.disabled = !!control.disabled;
+      element.setAttribute("data-ua-gallery-page", control.page);
+
+      if (!element.hasAttribute("data-ua-gallery-static-label")) {
+        element.textContent = control.label;
+      }
+    });
   };
 
   GalleryPlugin.prototype.bindEvents = function() {
@@ -157,81 +234,113 @@
     }));
   };
 
-  // Template rendering
+  // Template utilities
 
   var TemplateRenderer = {
     prepare: function(template, itemTemplate) {
-      var source = String(template || "");
-      var container;
-      var itemNode;
+      var shell = createTemplate(template || "");
+      var itemNode = itemTemplate ? null : shell.content.querySelector("template[data-ua-gallery-item-template]");
+      var item = itemTemplate ? createTemplate(itemTemplate) : itemNode;
 
-      if (itemTemplate) {
-        return {
-          shell: source,
-          item: String(itemTemplate)
-        };
+      if (itemNode) {
+        itemNode.remove();
       }
-
-      if (!global.document || !global.document.createElement) {
-        return prepareTemplateWithPattern(source);
-      }
-
-      container = global.document.createElement("template");
-      container.innerHTML = source;
-      itemNode = container.content.querySelector("template[data-ua-gallery-item-template]");
-
-      if (!itemNode) {
-        return {
-          shell: source,
-          item: ""
-        };
-      }
-
-      itemTemplate = itemNode.innerHTML;
-      itemNode.remove();
 
       return {
-        shell: container.innerHTML,
-        item: itemTemplate
+        shell: shell,
+        item: item
       };
     },
 
     clone: function(template) {
+      if (template && typeof template.cloneNode === "function") {
+        return template.cloneNode(true);
+      }
+
       return (" " + String(template || "")).slice(1);
     },
 
     repeat: function(template, records, escapeHtml) {
       return (records || []).map(function(record, index) {
+        var clone = TemplateRenderer.clone(getTemplateContent(template));
         var values = merge(record || {}, {
           _index: index,
           _number: index + 1
         });
 
-        return TemplateRenderer.replaceVariables(TemplateRenderer.clone(template), values, escapeHtml);
-      }).join("");
+        return TemplateRenderer.replaceVariables(clone, values, escapeHtml);
+      });
     },
 
     replaceVariables: function(template, values, escapeHtml) {
-      return String(template || "").replace(/\{\{\s*([^{}]+?)\s*\}\}/g, function(match, path) {
-        var value = getPathValue(values || {}, path);
+      if (!template || typeof template.querySelectorAll !== "function") {
+        return replaceStringVariables(template, values, escapeHtml);
+      }
 
-        if (value === null || typeof value === "undefined") {
-          return "";
-        }
+      replaceNodeVariables(template, values || {});
+      return template;
+    },
 
-        return escapeHtml(value);
+    replaceTextTargets: function(root, values) {
+      if (!root || typeof root.querySelectorAll !== "function") {
+        return;
+      }
+
+      Array.prototype.forEach.call(root.querySelectorAll("[data-ua-gallery-value]"), function(element) {
+        var value = getPathValue(values || {}, element.getAttribute("data-ua-gallery-value"));
+        element.textContent = value === null || typeof value === "undefined" ? "" : value;
       });
     }
   };
 
-  function prepareTemplateWithPattern(source) {
-    var pattern = /<template\b[^>]*data-ua-gallery-item-template(?:=(?:"[^"]*"|'[^']*'|[^\s>]+))?[^>]*>([\s\S]*?)<\/template>/i;
-    var match = source.match(pattern);
+  function createTemplate(html) {
+    var template = global.document.createElement("template");
+    template.innerHTML = String(html || "");
+    return template;
+  }
 
-    return {
-      shell: match ? source.replace(match[0], "") : source,
-      item: match ? match[1] : ""
-    };
+  function getTemplateContent(template) {
+    return template && template.content ? template.content : template;
+  }
+
+  function replaceNodeVariables(root, values) {
+    replaceTextNodeVariables(root, values);
+    replaceAttributeVariables(root, values);
+  }
+
+  function replaceTextNodeVariables(root, values) {
+    var walker = global.document.createTreeWalker(root, global.NodeFilter.SHOW_TEXT);
+    var node;
+
+    while ((node = walker.nextNode())) {
+      node.nodeValue = replaceStringVariables(node.nodeValue, values, identity);
+    }
+  }
+
+  function replaceAttributeVariables(root, values) {
+    Array.prototype.forEach.call(root.querySelectorAll("*"), function(element) {
+      Array.prototype.forEach.call(element.attributes, function(attribute) {
+        if (attribute.value.indexOf("{{") === -1) {
+          return;
+        }
+
+        element.setAttribute(attribute.name, replaceStringVariables(attribute.value, values, identity));
+      });
+    });
+  }
+
+  function replaceStringVariables(template, values, escapeHtml) {
+    var escape = escapeHtml || identity;
+
+    return String(template || "").replace(/\{\{\s*([^{}]+?)\s*\}\}/g, function(match, path) {
+      var value = getPathValue(values || {}, path);
+
+      if (value === null || typeof value === "undefined") {
+        return "";
+      }
+
+      return escape(value);
+    });
   }
 
   function getPathValue(values, path) {
@@ -262,6 +371,20 @@
     }
   };
 
+  function createFullView(records) {
+    return {
+      rows: records.slice(),
+      type: "none",
+      page: 1,
+      pageSize: records.length,
+      pageCount: 1,
+      total: records.length,
+      shown: records.length,
+      hasNext: false,
+      hasPrevious: false
+    };
+  }
+
   function resolveUrl(value, baseurl) {
     if (!baseurl || !value || typeof global.URL !== "function") {
       return value;
@@ -286,37 +409,7 @@
     }
   }
 
-  // Previous/next paging markup
-
-  var PagingRenderer = {
-    render: function(view, context) {
-      var controls = context.paging.controls(view);
-      var buttons = controls.map(function(control) {
-        return [
-          "<button type=\"button\" class=\"ua-gallery-page-button ua-gallery-page-", context.escapeHtml(control.action), "\"",
-          " data-ua-gallery-page=\"", context.escapeHtml(control.page), "\"",
-          control.disabled ? " disabled" : "",
-          ">", context.escapeHtml(control.label), "</button>"
-        ].join("");
-      }).join("");
-
-      return [
-        "<nav class=\"ua-gallery-paging\" aria-label=\"Gallery pages\">",
-        buttons,
-        "<span class=\"ua-gallery-page-status\">Page ", context.escapeHtml(view.page), " of ", context.escapeHtml(view.pageCount), "</span>",
-        "</nav>"
-      ].join("");
-    }
-  };
-
   // General helpers
-
-  function replaceStageHtml(stage, html) {
-    var templateElement = global.document.createElement("template");
-
-    templateElement.innerHTML = html;
-    stage.replaceChildren(templateElement.content.cloneNode(true));
-  }
 
   function normalizeOptions(options) {
     var settings = merge(defaults, options);
@@ -324,6 +417,7 @@
     settings.paging = merge(defaults.paging, options.paging || {});
     settings.paging.type = "previous-next";
     settings.fancybox = merge(defaults.fancybox, options.fancybox || {});
+    settings.captions = merge(defaults.captions, options.captions || {});
     return settings;
   }
 
@@ -344,6 +438,10 @@
     }
 
     return result;
+  }
+
+  function identity(value) {
+    return value;
   }
 
   // Registration supports either script load order, matching the grid plugin.

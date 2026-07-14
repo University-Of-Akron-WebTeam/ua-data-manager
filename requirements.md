@@ -44,8 +44,8 @@ UADataManager.init({
 1. Core element builder supports selects, text inputs, checkboxes, checkbox groups, images, and links.
 2. Grid filters render into individual HTML template placeholders.
 3. Grid rows expose modal details and sortable headers show direction states.
-4. Paging calculations remain shared in core while each plugin renders its own controls into `{{paging}}`.
-5. Gallery plugin keeps cloning, repeating, variable replacement, paging rendering, and lifecycle methods separate.
+4. Paging calculations remain shared in core while plugins update controls supplied by their HTML templates.
+5. Gallery plugin keeps mounting, cloning, repeating, variable replacement, list replacement, paging updates, and lifecycle methods separate.
 6. Gallery item templates repeat once per image record and replace `{{variable}}` values, including dot paths.
 7. Gallery uses previous/next paging and binds Fancybox to its stable stage element.
 8. Core supports `dataPath` for API responses that wrap records in an object.

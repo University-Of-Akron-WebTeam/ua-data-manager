@@ -1,18 +1,150 @@
-<div class="ua-gallery" data-ua-gallery>
-  <div class="ua-gallery-summary">Showing {{shown}} of {{count}} images</div>
-  <div class="ua-gallery-items" data-ua-gallery-items>
-    {{items}}
-  </div>
-  {{paging}}
+<style>
+  .ua-gallery .ua-gallery-items {
+    display: block !important;
+    column-count: 2;
+    column-gap: 12px;
+    margin: 20px 0;
+    grid-template-columns: none !important;
+  }
 
-  <template data-ua-gallery-item-template>
-    <article class="ua-gallery-item" data-ua-gallery-item data-ua-gallery-index="{{_index}}">
-      <a class="ua-gallery-image-link" href="{{full}}" data-fancybox="ua-gallery" data-thumb="{{thumbnail}}" data-caption="{{caption}}">
-        <img class="ua-gallery-image" src="{{thumbnail}}" alt="{{alt}}" loading="lazy">
-      </a>
-      <div class="ua-gallery-item-content">
-        <p class="ua-gallery-item-caption">{{caption}}</p>
-      </div>
-    </article>
-  </template>
+  @media (min-width: 640px) {
+    .ua-gallery .ua-gallery-items {
+      column-count: 3;
+    }
+  }
+
+  @media (min-width: 960px) {
+    .ua-gallery .ua-gallery-items {
+      column-count: 4;
+    }
+  }
+
+  @media (min-width: 1320px) {
+    .ua-gallery .ua-gallery-items {
+      column-count: 5;
+    }
+  }
+
+  .ua-gallery .ua-gallery-item {
+    position: relative;
+    display: inline-block !important;
+    width: 100%;
+    margin: 0 0 12px;
+    overflow: hidden;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    background: #18232d;
+  }
+
+  .ua-gallery-image-link {
+    position: relative;
+    display: block;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .ua-gallery .ua-gallery-image {
+    display: block;
+    width: 100%;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+    transform: scale(1);
+    transition: transform 0.3s ease;
+  }
+
+  .ua-gallery .ua-gallery-image-link:hover .ua-gallery-image,
+  .ua-gallery .ua-gallery-image-link:focus .ua-gallery-image {
+    transform: scale(1.06);
+  }
+
+  .ua-gallery-item-content {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.64);
+    color: #fff;
+  }
+
+  .ua-gallery-item-caption {
+    display: block;
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .ua-gallery-expand-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.62);
+    color: #fff;
+    font-size: 0.8rem;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .ua-gallery-paging {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .ua-gallery-page-button {
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid #1d547d;
+    border-radius: 5px;
+    background: #1d547d;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .ua-gallery-page-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .ua-gallery-page-status {
+    color: #18232d;
+  }
+</style>
+
+<div class="ua-gallery" data-ua-gallery>
+  <div class="ua-gallery-summary">
+    Showing <span data-ua-gallery-value="shown"></span> of <span data-ua-gallery-value="count"></span> images
+  </div>
+  <div class="ua-gallery-items" data-ua-gallery-items>
+    <template data-ua-gallery-item-template>
+      <article class="ua-gallery-item" data-ua-gallery-item data-ua-gallery-index="{{_index}}">
+        <a class="ua-gallery-image-link" href="{{full}}" data-fancybox="ua-gallery" data-thumb="{{thumbnail}}" data-caption="{{caption}}">
+          <img class="ua-gallery-image" src="{{thumbnail}}" alt="{{alt}}" loading="lazy">
+          <span class="ua-gallery-expand-icon" aria-hidden="true">
+            <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+          </span>
+          <span class="ua-gallery-item-content" data-ua-gallery-caption>
+            <span class="ua-gallery-item-caption">{{caption}}</span>
+          </span>
+        </a>
+      </article>
+    </template>
+  </div>
+  <nav class="ua-gallery-paging" aria-label="Gallery pages" data-ua-gallery-paging>
+    <button type="button" class="ua-gallery-page-button ua-gallery-page-previous" data-ua-gallery-control="previous" data-ua-gallery-page="1">Previous</button>
+    <button type="button" class="ua-gallery-page-button ua-gallery-page-next" data-ua-gallery-control="next" data-ua-gallery-page="1">Next</button>
+    <span class="ua-gallery-page-status">
+      Page <span data-ua-gallery-value="page"></span> of <span data-ua-gallery-value="pageCount"></span>
+    </span>
+  </nav>
 </div>

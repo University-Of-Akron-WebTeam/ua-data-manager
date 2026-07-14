@@ -402,7 +402,7 @@ This lets the gallery and future plugins reuse the core without inheriting grid-
 
 ## Gallery Plugin
 
-The gallery plugin repeats one item template for each record on the current page. It uses the core paging calculations and intentionally renders previous/next controls.
+The gallery plugin mounts one HTML template and repeats one item template for each image in the current masonry page. Previous/next controls load the next or previous set of thumbnails.
 
 ```html
 <div id="ua-gallery-stage"></div>
@@ -421,8 +421,12 @@ UADataManager.init({
       stage: "#ua-gallery-stage",
       templateurl: "templates/gallery.html",
       paging: {
+        enabled: true,
         page: 1,
-        pageSize: 12
+        pageSize: 24
+      },
+      captions: {
+        enabled: true
       },
       fancybox: {
         options: {
@@ -436,11 +440,21 @@ UADataManager.init({
 
 The UA image gallery response supplies `thumbnail`, `full`, `alt`, `icon`, and `caption`. Its image paths are relative; the gallery automatically resolves configured URL fields against the origin of `dataurl`. Use `baseurl` to override that origin or `urlFields` to change which record fields are resolved.
 
-The template contains a repeatable `<template data-ua-gallery-item-template>` element. Each `{{variable}}` inside it is replaced with the matching record property. Dot paths such as `{{media.thumbnail}}` are supported. The reserved variables `{{_index}}` and `{{_number}}` provide the zero-based and one-based positions on the current page.
+The template owns the gallery HTML. It contains a repeatable `<template data-ua-gallery-item-template>` element, a `[data-ua-gallery-items]` masonry target where item copies are placed, `[data-ua-gallery-value]` elements for counts and page status, and `[data-ua-gallery-control]` buttons for previous/next paging.
 
-The plugin keeps cloning and rendering responsibilities separate through its `clone`, `repeat`, `replaceVariables`, and `render` methods. An inline item template can also be supplied with the `itemtemplate` option.
+Each `{{variable}}` inside the item template is replaced with the matching record property. Dot paths such as `{{media.thumbnail}}` are supported. The reserved variables `{{_index}}` and `{{_number}}` provide the zero-based and one-based positions on the current page.
 
-The repeated item template uses Fancybox's declarative `data-fancybox`, `data-thumb`, and `data-caption` attributes. The plugin binds Fancybox to the stable gallery stage, so paging can replace the rendered items without registering duplicate handlers.
+The plugin keeps template responsibilities separate through `mountTemplate`, `clone`, `repeat`, `replaceVariables`, `replaceValues`, `replaceList`, and `render`. The `render` method prepares data and calls those helpers; it does not build page HTML strings. An inline item template can also be supplied with the `itemtemplate` option.
+
+The repeated item template uses Fancybox's declarative `data-fancybox`, `data-thumb`, and `data-caption` attributes. The plugin binds Fancybox to the stable gallery stage, so gallery items can be replaced without registering duplicate handlers.
+
+Caption overlays are enabled by default. Disable them with:
+
+```js
+captions: {
+  enabled: false
+}
+```
 
 Pass Fancybox options through the gallery configuration:
 
@@ -454,6 +468,6 @@ fancybox: {
 }
 ```
 
-If Fancybox is unavailable, the image anchors retain their normal link behavior. Fancybox navigation covers the images on the current data page; the gallery's previous/next buttons move between data pages.
+If Fancybox is unavailable, the image anchors retain their normal link behavior. Adjust `paging.pageSize` to control how many thumbnails appear in each masonry page.
 
 The gallery emits `ua-gallery:rendered` after each render. Its event detail contains the current paging view and gallery plugin instance.
