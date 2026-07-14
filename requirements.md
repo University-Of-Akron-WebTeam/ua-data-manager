@@ -39,15 +39,19 @@ UADataManager.init({
 });
 ```
 
+## Current Status
+
+1. Core element builder supports selects, text inputs, checkboxes, checkbox groups, images, and links.
+2. Grid filters render into individual HTML template placeholders.
+3. Grid rows expose modal details and sortable headers show direction states.
+4. Paging calculations remain shared in core while each plugin renders its own controls into `{{paging}}`.
+5. Gallery plugin keeps cloning, repeating, variable replacement, paging rendering, and lifecycle methods separate.
+6. Gallery item templates repeat once per image record and replace `{{variable}}` values, including dot paths.
+7. Gallery uses previous/next paging and binds Fancybox to its stable stage element.
+8. Core supports `dataPath` for API responses that wrap records in an object.
+
 ## Next Session Notes
 
-1. Move filter rendering into the HTML template separately from the grid plugin logic.
-	a.Let's add a element builder to the core.
-		-filters: filter options will describe an element (for instance select dropdown) within the html template we will name the element
-		          grid will use the core "element builder" to output the element according to the options and element type.
-		          core will support these types (dropdowns/select, text input, checkbox and checkbox group, images, links)
-		          grid will fill element values as it does now, however options can provide override values		          
-2a. clicking on a row will expose a bootstrap modal with details about that row.
-2. Leave sorting behavior as-is, but add visible sort arrows/states to sortable headers.
-3. (leave for later) Move paging markup into the HTML template somehow while keeping paging methods shared in core.
-4. (leave for later) Devise a way to create an image gallery plugin.
+1. Confirm whether the API-generated captions should be displayed as supplied or transformed for presentation.
+2. Decide which Fancybox controls and theme options should be used in production.
+3. Move gallery presentation styles from the demo into the appropriate dotCMS theme or component stylesheet.

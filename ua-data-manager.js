@@ -14,6 +14,7 @@
   var coreDefaults = {
     data: [],
     dataurl: "",
+    dataPath: "",
     parseCSV: false,
     parseTSV: false,
     plugins: {}
@@ -229,7 +230,7 @@
     return {
       manager: this,
       records: function() {
-        return this.records.slice();
+        return getRecordArray(this.records, this.options.dataPath || this.options.datapath);
       }.bind(this),
       loadTemplate: loadTemplate,
       renderTemplate: renderTemplate,
@@ -478,6 +479,8 @@
   }
 
   function parseInput(input, options) {
+    var parsed;
+
     if (Array.isArray(input)) {
       return input.slice();
     }
@@ -491,10 +494,37 @@
     }
 
     if (typeof input === "string" && input.trim()) {
-      return JSON.parse(input);
+      parsed = JSON.parse(input);
+    } else if (input && typeof input === "object") {
+      parsed = input;
+    } else {
+      parsed = [];
     }
 
-    return [];
+    return getRecordArray(parsed, options.dataPath || options.datapath);
+  }
+
+  function getRecordArray(input, dataPath) {
+    var records = input;
+
+    // DataManager normally stores an array. Keeping this guard here also lets
+    // the plugin context recover safely if wrapped API data is assigned by an
+    // integration after initialization.
+    if (dataPath && !Array.isArray(records)) {
+      records = String(dataPath).split(".").reduce(function(value, key) {
+        if (value === null || typeof value === "undefined") {
+          return undefined;
+        }
+
+        return value[key];
+      }, input);
+    }
+
+    if (!Array.isArray(records)) {
+      throw new Error("UA Data Manager " + (dataPath ? "dataPath '" + dataPath + "'" : "data") + " must resolve to an array.");
+    }
+
+    return records.slice();
   }
 
   function parseDelimited(text, delimiter) {

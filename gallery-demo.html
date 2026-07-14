@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UA Data Manager Gallery Demo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.css">
+    <style>
+      body {
+        margin: 0;
+        padding: 32px;
+        color: #18232d;
+        font-family: Arial, sans-serif;
+      }
+
+      .ua-gallery-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+      }
+
+      .ua-gallery-item {
+        overflow: hidden;
+        border: 1px solid #d8dde5;
+        border-radius: 8px;
+        background: #fff;
+      }
+
+      .ua-gallery-image {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+      }
+
+      .ua-gallery-item-content {
+        padding: 12px 14px;
+      }
+
+      .ua-gallery-item-caption {
+        margin: 0;
+      }
+
+      .ua-gallery-paging {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .ua-gallery-page-button {
+        min-height: 38px;
+        padding: 0 14px;
+        border: 1px solid #1d547d;
+        border-radius: 5px;
+        background: #1d547d;
+        color: #fff;
+        cursor: pointer;
+      }
+
+      .ua-gallery-page-button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>UA Data Manager Gallery</h1>
+      <div id="ua-gallery-stage"></div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.umd.js"></script>
+    <script src="ua-data-manager.js?v=20260713-2"></script>
+    <script src="plugins/gallery.js?v=20260713-2"></script>
+    <script>
+      UADataManager.init({
+        dataurl: "https://dev.uakron.edu/api/vtl/imagegallery?folder=Yes&contentID=7b5fdb2f6aab534ee2d8268faaf83f1d&yesUseThisFolderPath=Yes",
+        dataPath: "images",
+        plugins: {
+          gallery: {
+            stage: "#ua-gallery-stage",
+            templateurl: "templates/gallery.html?v=20260713-2",
+            paging: {
+              page: 1,
+              pageSize: 3
+            },
+            fancybox: {
+              options: {
+                theme: "dark"
+              }
+            }
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

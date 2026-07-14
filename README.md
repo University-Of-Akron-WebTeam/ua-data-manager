@@ -9,11 +9,17 @@ The core file loads data and gives shared utilities to plugins. Plugins own the 
 ```text
 ua-data-manager/
   index.html
+  gallery-demo.html
   ua-data-manager.js
   plugins/
     grid.js
+    gallery.js
   templates/
     grid.html
+    gallery.html
+  tests/
+    core.test.js
+    gallery.test.js
   requirements.md
   README.md
 ```
@@ -82,6 +88,7 @@ The core accepts these top-level options.
 UADataManager.init({
   data: [],
   dataurl: "",
+  dataPath: "",
   parseCSV: false,
   parseTSV: false,
   plugins: {}
@@ -91,6 +98,8 @@ UADataManager.init({
 `data` can be an array of records.
 
 `dataurl` can point to a JSON, CSV, or TSV file. JSON is the default. Use `parseCSV: true` or `parseTSV: true` for delimited files.
+
+`dataPath` selects an array inside a wrapped JSON response. For example, use `dataPath: "images"` for `{ "images": [...] }`. Dot paths such as `payload.images` are supported.
 
 `plugins` is an object where each key is a plugin name. The grid plugin uses the `grid` key.
 
@@ -389,4 +398,62 @@ The core owns reusable pieces:
 - building common elements
 - shared paging calculations and control metadata
 
-This keeps future plugins, such as an image gallery, able to reuse the core without inheriting grid-specific markup.
+This lets the gallery and future plugins reuse the core without inheriting grid-specific markup.
+
+## Gallery Plugin
+
+The gallery plugin repeats one item template for each record on the current page. It uses the core paging calculations and intentionally renders previous/next controls.
+
+```html
+<div id="ua-gallery-stage"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.css">
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1.14/dist/fancybox/fancybox.umd.js"></script>
+<script src="ua-data-manager.js"></script>
+<script src="plugins/gallery.js"></script>
+```
+
+```js
+UADataManager.init({
+  dataurl: "https://dev.uakron.edu/api/vtl/imagegallery?folder=Yes&contentID=7b5fdb2f6aab534ee2d8268faaf83f1d&yesUseThisFolderPath=Yes",
+  dataPath: "images",
+  plugins: {
+    gallery: {
+      stage: "#ua-gallery-stage",
+      templateurl: "templates/gallery.html",
+      paging: {
+        page: 1,
+        pageSize: 12
+      },
+      fancybox: {
+        options: {
+          theme: "dark"
+        }
+      }
+    }
+  }
+});
+```
+
+The UA image gallery response supplies `thumbnail`, `full`, `alt`, `icon`, and `caption`. Its image paths are relative; the gallery automatically resolves configured URL fields against the origin of `dataurl`. Use `baseurl` to override that origin or `urlFields` to change which record fields are resolved.
+
+The template contains a repeatable `<template data-ua-gallery-item-template>` element. Each `{{variable}}` inside it is replaced with the matching record property. Dot paths such as `{{media.thumbnail}}` are supported. The reserved variables `{{_index}}` and `{{_number}}` provide the zero-based and one-based positions on the current page.
+
+The plugin keeps cloning and rendering responsibilities separate through its `clone`, `repeat`, `replaceVariables`, and `render` methods. An inline item template can also be supplied with the `itemtemplate` option.
+
+The repeated item template uses Fancybox's declarative `data-fancybox`, `data-thumb`, and `data-caption` attributes. The plugin binds Fancybox to the stable gallery stage, so paging can replace the rendered items without registering duplicate handlers.
+
+Pass Fancybox options through the gallery configuration:
+
+```js
+fancybox: {
+  enabled: true,
+  selector: "[data-fancybox=\"ua-gallery\"]",
+  options: {
+    theme: "dark"
+  }
+}
+```
+
+If Fancybox is unavailable, the image anchors retain their normal link behavior. Fancybox navigation covers the images on the current data page; the gallery's previous/next buttons move between data pages.
+
+The gallery emits `ua-gallery:rendered` after each render. Its event detail contains the current paging view and gallery plugin instance.

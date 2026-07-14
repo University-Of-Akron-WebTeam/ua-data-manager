@@ -1,0 +1,18 @@
+<div class="ua-gallery" data-ua-gallery>
+  <div class="ua-gallery-summary">Showing {{shown}} of {{count}} images</div>
+  <div class="ua-gallery-items" data-ua-gallery-items>
+    {{items}}
+  </div>
+  {{paging}}
+
+  <template data-ua-gallery-item-template>
+    <article class="ua-gallery-item" data-ua-gallery-item data-ua-gallery-index="{{_index}}">
+      <a class="ua-gallery-image-link" href="{{full}}" data-fancybox="ua-gallery" data-thumb="{{thumbnail}}" data-caption="{{caption}}">
+        <img class="ua-gallery-image" src="{{thumbnail}}" alt="{{alt}}" loading="lazy">
+      </a>
+      <div class="ua-gallery-item-content">
+        <p class="ua-gallery-item-caption">{{caption}}</p>
+      </div>
+    </article>
+  </template>
+</div>
