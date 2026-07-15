@@ -531,9 +531,19 @@
 
   function parseDelimited(text, delimiter, providedHeaders) {
     var rows = String(text || "").trim().split(/\r?\n/);
-    var headers = Array.isArray(providedHeaders) && providedHeaders.length
-      ? providedHeaders
-      : parseDelimitedRow(rows.shift() || "", delimiter);
+    var firstRow = parseDelimitedRow(rows[0] || "", delimiter);
+    var headers;
+
+    if (Array.isArray(providedHeaders) && providedHeaders.length) {
+      if (looksLikeHeaderRow(firstRow, providedHeaders)) {
+        headers = firstRow;
+        rows.shift();
+      } else {
+        headers = providedHeaders;
+      }
+    } else {
+      headers = parseDelimitedRow(rows.shift() || "", delimiter);
+    }
 
     return rows.filter(Boolean).map(function(row) {
       var values = parseDelimitedRow(row, delimiter);
@@ -542,6 +552,31 @@
         return record;
       }, {});
     });
+  }
+
+  function looksLikeHeaderRow(row, providedHeaders) {
+    var provided = {};
+    var matches = 0;
+
+    if (!row.length) {
+      return false;
+    }
+
+    providedHeaders.forEach(function(header) {
+      provided[normalizeHeaderName(header)] = true;
+    });
+
+    row.forEach(function(value) {
+      if (provided[normalizeHeaderName(value)]) {
+        matches += 1;
+      }
+    });
+
+    return matches >= 2 && matches / row.length >= 0.5;
+  }
+
+  function normalizeHeaderName(value) {
+    return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   }
 
   function parseDelimitedRow(row, delimiter) {

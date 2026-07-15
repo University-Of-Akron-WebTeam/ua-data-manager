@@ -24,19 +24,26 @@
     <div id="student-recognition-stage"></div>
   </div>
 
-  <script src="ua-data-manager.js?v=20260714-4"></script>
-  <script src="plugins/student-recognition.js?v=20260714-4"></script>
+  <script src="ua-data-manager.js?v=20260715-1"></script>
+  <script src="plugins/student-recognition.js?v=20260715-1"></script>
   <script>
     UADataManager.init({
       dataurl: location.hostname === "dev.uakron.edu"
-        ? "/audiences/current_students/recognition/includes/data/awards-list-spring-2025.csv"
-        : "https://dev.uakron.edu/audiences/current_students/recognition/includes/data/awards-list-spring-2025.csv",
+        ? "/audiences/current_students/recognition/includes/data/Spring2026-SR_Dean_and_President_List.csv"
+        : "https://dev.uakron.edu/audiences/current_students/recognition/includes/data/Spring2026-SR_Dean_and_President_List.csv",
       parseCSV: true,
-      csvHeaders: ["recognition", "lastName", "firstName", "middleName", "college"],
+      csvHeaders: ["Award", "Last Name", "First Name", "Middle Name", "College"],
       plugins: {
         "student-recognition": {
           stage: "#student-recognition-stage",
-          templateurl: "templates/student-recognition.html?v=20260714-4",
+          templateurl: "templates/student-recognition.html?v=20260715-1",
+          fields: {
+            recognition: "Award",
+            firstName: "First Name",
+            middleName: [],
+            lastName: "Last Name",
+            department: ["College", "Middle Name"]
+          },
           columns: [
             { key: "student", label: "Student", target: "name" },
             { key: "department", label: "Department", target: "department" },

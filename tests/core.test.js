@@ -103,6 +103,7 @@ function waitForCsvRender(attempts) {
       }
     ]);
     process.stdout.write("core csvHeaders tests passed\n");
+    runHeaderedCsvWithFallbackHeadersTest();
     return;
   }
 
@@ -112,5 +113,49 @@ function waitForCsvRender(attempts) {
 
   setTimeout(function() {
     waitForCsvRender(attempts - 1);
+  }, 0);
+}
+
+function runHeaderedCsvWithFallbackHeadersTest() {
+  capturedRecords = null;
+  csvManager = window.UADataManager.init({
+    data: "Award,Last Name,First Name,College\nDean's List,Jones,Alexandra,Buchtel College of Arts and Sciences\nPresident's List,Pissamai,Pimsuras,Buchtel College of Arts and Sciences",
+    parseCSV: true,
+    csvHeaders: ["Award", "Last Name", "First Name", "Middle Name", "College"],
+    plugins: {
+      capture: {}
+    }
+  });
+
+  void csvManager;
+  waitForHeaderedCsvWithFallbackHeadersRender(10);
+}
+
+function waitForHeaderedCsvWithFallbackHeadersRender(attempts) {
+  if (capturedRecords) {
+    assert.deepStrictEqual(capturedRecords, [
+      {
+        Award: "Dean's List",
+        "Last Name": "Jones",
+        "First Name": "Alexandra",
+        College: "Buchtel College of Arts and Sciences"
+      },
+      {
+        Award: "President's List",
+        "Last Name": "Pissamai",
+        "First Name": "Pimsuras",
+        College: "Buchtel College of Arts and Sciences"
+      }
+    ]);
+    process.stdout.write("core csvHeaders header-row auto-detect tests passed\n");
+    return;
+  }
+
+  if (!attempts) {
+    throw new Error("Core did not render the headered CSV records with fallback headers.");
+  }
+
+  setTimeout(function() {
+    waitForHeaderedCsvWithFallbackHeadersRender(attempts - 1);
   }, 0);
 }

@@ -486,7 +486,7 @@ The gallery emits `ua-gallery:rendered` after each render. Its event detail cont
 
 ## Student Recognition Plugin
 
-The student-recognition plugin is a small example of turning `plugins/starter.js` into a real feature plugin. It mounts `templates/student-recognition.html`, renders a two-column grid, and adds filtering and sorting while keeping display markup in the HTML template.
+The student-recognition plugin is a small example of turning `plugins/starter.js` into a real feature plugin. It mounts `templates/student-recognition.html`, renders a configurable grid, and adds filtering and sorting while keeping display markup in the HTML template.
 
 ```html
 <div id="student-recognition-stage"></div>
@@ -497,14 +497,21 @@ The student-recognition plugin is a small example of turning `plugins/starter.js
 ```js
 UADataManager.init({
   dataurl: location.hostname === "dev.uakron.edu"
-    ? "/audiences/current_students/recognition/includes/data/awards-list-spring-2025.csv"
-    : "https://dev.uakron.edu/audiences/current_students/recognition/includes/data/awards-list-spring-2025.csv",
+    ? "/audiences/current_students/recognition/includes/data/Spring2026-SR_Dean_and_President_List.csv"
+    : "https://dev.uakron.edu/audiences/current_students/recognition/includes/data/Spring2026-SR_Dean_and_President_List.csv",
   parseCSV: true,
-  csvHeaders: ["recognition", "lastName", "firstName", "middleName", "college"],
+  csvHeaders: ["Award", "Last Name", "First Name", "Middle Name", "College"],
   plugins: {
     "student-recognition": {
       stage: "#student-recognition-stage",
       templateurl: "templates/student-recognition.html",
+      fields: {
+        recognition: "Award",
+        firstName: "First Name",
+        middleName: [],
+        lastName: "Last Name",
+        department: ["College", "Middle Name"]
+      },
       columns: [
         { key: "student", label: "Student", target: "name" },
         { key: "department", label: "Department", target: "department" },
@@ -538,4 +545,4 @@ UADataManager.init({
 });
 ```
 
-The Spring 2025 awards CSV does not include a header row, so the demo provides `csvHeaders`. The plugin normalizes the `PRES` and `DEAN` codes into friendly recognition labels and displays the student name, college, and award. Edit the row template placeholders or column/filter targets when the source data uses different field names.
+The Spring awards CSV can work as either a headered file (`Award`, `Last Name`, `First Name`, `College`) or the older headerless file. `csvHeaders` provides fallback headers for headerless data; when the file already has a matching header row, the core automatically uses the real headers instead. The `middleName: []` setting prevents the old fallback `Middle Name` position from being added to the student name, while `department: ["College", "Middle Name"]` lets both CSV shapes populate department correctly.

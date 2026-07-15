@@ -38,6 +38,17 @@
       PRES: "President's List",
       DEAN: "Dean's List"
     },
+    fields: {
+      name: ["name", "Name", "student", "Student", "studentName", "StudentName", "Student Name", "Full Name", "fullName"],
+      recognition: ["recognition", "Recognition", "award", "Award", "awards", "Awards", "Award Name", "honor", "Honor"],
+      department: ["department", "Department", "dept", "Dept", "college", "College"],
+      firstName: ["firstName", "FirstName", "First Name", "first", "First"],
+      middleName: ["middleName", "MiddleName", "Middle Name", "middle", "Middle"],
+      lastName: ["lastName", "LastName", "Last Name", "last", "Last"],
+      program: ["program", "Program", "major", "Major", "degree", "Degree"],
+      year: ["year", "Year", "class", "Class", "classYear", "Class Year"],
+      summary: ["summary", "Summary", "description", "Description", "details", "Details", "note", "Note"]
+    },
     paging: {
       type: "infinite",
       page: 1,
@@ -428,23 +439,27 @@
   }
 
   function normalizeRecords(records, settings) {
-    return records.map(function(record) {
+    var fields = settings.fields || {};
+
+    return records.filter(function(record) {
+      return !isHeaderRecord(record);
+    }).map(function(record) {
       var positionalRecord = getPositionalRecord(record);
       var source = positionalRecord || record;
-      var firstName = firstValue(source, ["firstName", "FirstName", "First Name", "first", "First"]);
-      var middleName = firstValue(source, ["middleName", "MiddleName", "Middle Name", "middle", "Middle"]);
-      var lastName = firstValue(source, ["lastName", "LastName", "Last Name", "last", "Last"]);
-      var recognition = normalizeRecognition(firstValue(source, ["recognition", "Recognition", "award", "Award", "awards", "Awards", "Award Name", "honor", "Honor"]), settings);
-      var department = firstValue(source, ["department", "Department", "dept", "Dept", "college", "College"]);
-      var program = firstValue(source, ["program", "Program", "major", "Major", "degree", "Degree"]) || department;
-      var year = firstValue(record, ["year", "Year", "class", "Class", "classYear", "Class Year"]);
-      var summary = firstValue(record, ["summary", "Summary", "description", "Description", "details", "Details", "note", "Note"]);
+      var firstName = fieldValue(source, fields.firstName);
+      var middleName = fieldValue(source, fields.middleName);
+      var lastName = fieldValue(source, fields.lastName);
+      var recognition = normalizeRecognition(fieldValue(source, fields.recognition), settings);
+      var department = fieldValue(source, fields.department);
+      var program = fieldValue(source, fields.program) || department;
+      var year = fieldValue(record, fields.year);
+      var summary = fieldValue(record, fields.summary);
 
       return merge(record, {
         firstName: firstName,
         middleName: middleName,
         lastName: lastName,
-        name: firstValue(record, ["name", "Name", "student", "Student", "studentName", "StudentName", "Student Name", "Full Name", "fullName"]) || compactJoin([firstName, middleName, lastName], " "),
+        name: fieldValue(record, fields.name) || compactJoin([firstName, middleName, lastName], " "),
         recognition: recognition,
         department: department,
         program: program,
@@ -454,6 +469,26 @@
         meta: compactJoin([program, year], " | ")
       });
     });
+  }
+
+  function isHeaderRecord(record) {
+    var values = Object.keys(record || {}).map(function(key) {
+      return normalizeHeaderValue(record[key]);
+    });
+
+    return values.indexOf("award") !== -1
+      && values.indexOf("lastname") !== -1
+      && values.indexOf("firstname") !== -1
+      && (values.indexOf("college") !== -1 || values.indexOf("department") !== -1);
+  }
+
+  function normalizeHeaderValue(value) {
+    return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }
+
+  function fieldValue(record, field) {
+    var keys = Array.isArray(field) ? field : [field];
+    return firstValue(record, keys);
   }
 
   function getPositionalRecord(record) {
@@ -720,7 +755,14 @@
   }
 
   function normalizeOptions(options) {
-    return merge(defaults, options);
+    var settings = merge(defaults, options);
+
+    settings.fields = merge(defaults.fields, options.fields || {});
+    settings.filters = merge(defaults.filters, options.filters || {});
+    settings.paging = merge(defaults.paging, options.paging || {});
+    settings.recognitionLabels = merge(defaults.recognitionLabels, options.recognitionLabels || {});
+
+    return settings;
   }
 
   function merge(base, override) {
