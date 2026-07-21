@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UA Content Reducer Demo</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f4f7fa;
+      color: #1b1f24;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .demo-page {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0;
+    }
+
+    .demo-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .demo-card {
+      padding: 18px;
+      border: 1px solid #d7dee6;
+      background: #fff;
+    }
+
+    .demo-card h2 {
+      margin: 0 0 8px;
+      color: #102f4c;
+      font-size: 1.2rem;
+    }
+
+    .demo-actions {
+      margin-top: 12px;
+    }
+
+    .ua-content-reducer-button,
+    .demo-more {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid #1d547d;
+      border-radius: 5px;
+      background: #1d547d;
+      color: #fff;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .demo-template {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-page">
+    <div class="demo-list">
+      <article class="demo-card" data-detail-url="https://www.uakron.edu/">
+        <h2>Carousel Item One</h2>
+        <div class="demo-copy">
+          <p>This copy includes <strong>HTML tags</strong>, nested text, and extra spacing. The reducer reads the text content, removes the markup from the output, and trims the result to the configured character count.</p>
+        </div>
+        <div class="demo-actions"></div>
+      </article>
+
+      <article class="demo-card" data-detail-url="https://www.uakron.edu/academics/">
+        <h2>Carousel Item Two</h2>
+        <div class="demo-copy">
+          <p>A second block proves the reducer can run across multiple targets, such as carousel slides, cards, news items, or profile teasers.</p>
+        </div>
+        <div class="demo-actions"></div>
+      </article>
+    </div>
+
+    <a class="demo-more demo-template" href="#">See more</a>
+  </div>
+
+  <script src="ua-content-reducer.js?v=20260721-1"></script>
+  <script>
+    UAContentReducer.start({
+      targets: ".demo-card",
+      source: ".demo-copy",
+      maxCharacters: 90,
+      button: {
+        mode: "clone",
+        source: ".demo-template",
+        urlAttribute: "data-detail-url",
+        className: "ua-content-reducer-button"
+      }
+    });
+  </script>
+</body>
+</html>

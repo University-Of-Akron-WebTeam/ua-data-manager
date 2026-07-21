@@ -10,7 +10,9 @@ The core file loads data and gives shared utilities to plugins. Plugins own the 
 ua-data-manager/
   index.html
   gallery-demo.html
+  content-reducer-demo.html
   student-recognition-demo.html
+  ua-content-reducer.js
   ua-data-manager.js
   plugins/
     grid.js
@@ -26,6 +28,7 @@ ua-data-manager/
     core.test.js
     gallery.test.js
   requirements.md
+  CONTENT_REDUCER_NOTES.md
   DEVELOPER_NOTES.md
   README.md
 ```
@@ -411,6 +414,28 @@ The core owns reusable pieces:
 This lets the gallery and future plugins reuse the core without inheriting grid-specific markup.
 
 See `DEVELOPER_NOTES.md` for the plugin lifecycle and copy `plugins/starter.js` when creating a new plugin. For table-like plugins with filters and sorting, see `GRID_DEVELOPER_NOTES.md` and copy `plugins/grid-starter.js`.
+
+## Content Reducer
+
+`ua-content-reducer.js` is a standalone utility for shortening existing DOM content. It does not use UA Data Manager data loading.
+
+```html
+<script src="ua-content-reducer.js"></script>
+<script>
+  UAContentReducer.start({
+    targets: ".carousel-item",
+    source: ".carousel-copy",
+    maxCharacters: 140,
+    button: {
+      mode: "clone",
+      source: ".see-more-template",
+      className: "arrow-link text-decoration-none"
+    }
+  });
+</script>
+```
+
+The reducer automatically looks for `data-read-more-url` or `data-url` on the target, source, output, or a nested element. When `button.target` is omitted, the cloned button appears inline after the ellipsis. See `CONTENT_REDUCER_NOTES.md` for button modes and option details.
 
 ## Gallery Plugin
 
